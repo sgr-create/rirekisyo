@@ -1,0 +1,999 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>履歴書作成アプリ</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'Hiragino Sans','Yu Gothic',sans-serif;background:#f0f4f8;color:#333;font-size:15px}
+
+/* HEADER */
+.app-header{background:linear-gradient(135deg,#1a56db,#2563eb);color:white;padding:14px 16px;text-align:center;font-size:17px;font-weight:700;position:sticky;top:0;z-index:100;box-shadow:0 2px 8px rgba(0,0,0,.2)}
+
+/* TABS */
+.tabs{display:flex;background:white;border-bottom:2px solid #e2e8f0;position:sticky;top:51px;z-index:99;overflow-x:auto;-webkit-overflow-scrolling:touch}
+.tab{flex:1;min-width:72px;padding:11px 6px;text-align:center;font-size:12px;cursor:pointer;color:#718096;border-bottom:3px solid transparent;white-space:nowrap;user-select:none;transition:color .2s}
+.tab.active{color:#1a56db;border-bottom-color:#1a56db;font-weight:700}
+
+/* SECTIONS */
+.section{display:none;padding:16px 16px 100px}.section.active{display:block}
+
+/* CARDS */
+.card{background:white;border-radius:12px;padding:16px;margin-bottom:16px;box-shadow:0 1px 4px rgba(0,0,0,.08)}
+.card-title{font-size:13px;font-weight:700;color:#1a56db;margin-bottom:12px;padding-bottom:8px;border-bottom:1px solid #e2e8f0;display:flex;align-items:center;gap:6px}
+.badge{font-size:10px;padding:2px 7px;border-radius:10px;font-weight:600}
+.badge-auto{background:#dbeafe;color:#1d4ed8}
+.badge-work{background:#fee2e2;color:#991b1b}
+.badge-edu{background:#dcfce7;color:#166534}
+.badge-lic{background:#fef9c3;color:#854d0e}
+
+/* FIELDS */
+.field{margin-bottom:12px}.field:last-child{margin-bottom:0}
+.field label{display:block;font-size:12px;color:#64748b;margin-bottom:4px;font-weight:500}
+.field input,.field select,.field textarea{width:100%;padding:10px 12px;border:1.5px solid #e2e8f0;border-radius:8px;font-size:15px;font-family:inherit;background:#f8fafc;outline:none;transition:border-color .2s,background .2s;-webkit-appearance:none}
+.field input:focus,.field select:focus,.field textarea:focus{border-color:#1a56db;background:white}
+.field textarea{resize:vertical;min-height:90px}
+.row2{display:flex;gap:10px}.row2 .field{flex:1}
+
+/* AUTO INFO */
+.auto-info{background:#eff6ff;border:1px solid #bfdbfe;border-radius:8px;padding:10px 12px;font-size:13px;color:#1e40af;margin-bottom:12px}
+
+/* ENTRY CARDS */
+.entry-card{background:#f8fafc;border:1.5px solid #e2e8f0;border-radius:10px;padding:12px;margin-bottom:10px}
+.entry-card-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:10px}
+.btn-del{background:none;border:none;cursor:pointer;color:#dc2626;font-size:20px;padding:2px 4px;line-height:1}
+.btn-add{width:100%;padding:11px;background:#f0f9ff;color:#0369a1;border:2px dashed #7dd3fc;border-radius:8px;font-size:14px;font-weight:600;cursor:pointer;margin-top:4px}
+
+/* BOTTOM BAR */
+.bottom-bar{position:fixed;bottom:0;left:0;right:0;background:white;padding:10px 16px;box-shadow:0 -2px 12px rgba(0,0,0,.1);display:flex;gap:8px;z-index:100;flex-wrap:wrap}
+.btn-primary{flex:2;min-width:120px;padding:13px;background:linear-gradient(135deg,#1a56db,#2563eb);color:white;border:none;border-radius:10px;font-size:15px;font-weight:700;cursor:pointer}
+.btn-save{padding:13px 14px;background:white;color:#1a56db;border:2px solid #1a56db;border-radius:10px;font-size:13px;font-weight:700;cursor:pointer}
+.btn-export{padding:13px 14px;background:white;color:#059669;border:2px solid #059669;border-radius:10px;font-size:13px;font-weight:700;cursor:pointer}
+.btn-import{padding:13px 14px;background:white;color:#7c3aed;border:2px solid #7c3aed;border-radius:10px;font-size:13px;font-weight:700;cursor:pointer}
+
+/* FILE MODAL */
+.file-modal{display:none;position:fixed;inset:0;background:rgba(0,0,0,.6);z-index:2000;align-items:center;justify-content:center;padding:20px}
+.file-modal.active{display:flex}
+.file-modal-box{background:white;border-radius:16px;padding:24px;width:100%;max-width:380px;box-shadow:0 8px 32px rgba(0,0,0,.2)}
+.file-modal-box h3{font-size:16px;font-weight:700;margin-bottom:8px;color:#1a56db}
+.file-modal-box p{font-size:13px;color:#64748b;margin-bottom:16px;line-height:1.6}
+.file-modal-btn{width:100%;padding:13px;border:none;border-radius:10px;font-size:15px;font-weight:700;cursor:pointer;margin-bottom:10px}
+.file-modal-btn.green{background:#059669;color:white}
+.file-modal-btn.purple{background:#7c3aed;color:white}
+.file-modal-btn.gray{background:#f1f5f9;color:#475569;font-size:14px}
+
+/* SAVED NOTICE */
+.saved-notice{position:fixed;bottom:80px;left:50%;transform:translateX(-50%);background:#166534;color:white;padding:10px 20px;border-radius:20px;font-size:13px;font-weight:600;opacity:0;transition:opacity .3s;pointer-events:none;z-index:200;white-space:nowrap}
+.saved-notice.show{opacity:1}
+
+/* PREVIEW MODAL */
+.modal{display:none;position:fixed;inset:0;background:rgba(0,0,0,.8);z-index:1000;flex-direction:column}
+.modal.active{display:flex}
+.modal-top{background:#1e3a6b;color:white;padding:12px 16px;display:flex;justify-content:space-between;align-items:center;flex-shrink:0}
+.modal-top h2{font-size:15px}
+.btn-modal-close{background:none;border:none;color:white;font-size:26px;cursor:pointer;line-height:1;padding:0 6px}
+.modal-actions{background:#1a3360;padding:8px 16px 10px;display:flex;gap:8px;flex-shrink:0}
+.btn-print{background:#16a34a;color:white;border:none;border-radius:8px;padding:9px 18px;font-size:14px;font-weight:700;cursor:pointer}
+.preview-scroll{flex:1;overflow:auto;padding:16px;display:flex;justify-content:flex-start;align-items:flex-start}
+.preview-hint{color:#94a3b8;font-size:12px;text-align:center;padding:4px 16px 8px;background:#1a3360;flex-shrink:0}
+
+/* PREVIEW SCALER */
+#previewWrapper{position:relative;flex-shrink:0;overflow:hidden}
+.preview-scaler{transform-origin:top left;display:inline-block}
+
+/* ===================== A4 RESUME ===================== */
+.resume{
+  width:297mm;height:210mm;
+  background:white;
+  font-family:'MS Mincho','Hiragino Mincho ProN','Yu Mincho',serif;
+  font-size:7pt;
+  padding:6mm 7mm;
+  display:flex;gap:4mm;
+  overflow:hidden;
+  box-shadow:0 4px 20px rgba(0,0,0,.3)
+}
+.r-col-l{width:148mm;flex-shrink:0;display:flex;flex-direction:column;gap:1mm}
+.r-col-r{flex:1;display:flex;flex-direction:column;gap:1mm}
+
+/* Title */
+.r-title-row{display:flex;justify-content:space-between;align-items:baseline}
+.r-title{font-size:16pt;font-weight:700;letter-spacing:6pt}
+.r-date-txt{font-size:7pt}
+
+/* Photo + info layout */
+.r-info-area{display:flex;gap:2mm;align-items:flex-start}
+.r-info-tables{flex:1}
+.r-photo{width:28mm;height:36mm;border:1px solid #333;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;font-size:5.5pt;color:#555;line-height:1.7;flex-shrink:0;padding:2mm}
+
+/* Tables */
+.rt{width:100%;border-collapse:collapse}
+.rt td,.rt th{border:1px solid #333;padding:1mm 1.5mm;font-size:6.5pt;vertical-align:middle}
+.rt .lbl{background:#f5f5f5;white-space:nowrap;font-size:5.5pt;text-align:center;width:12mm}
+.r-name-big{font-size:12pt;font-weight:700}
+
+/* History table */
+.rh{width:100%;border-collapse:collapse}
+.rh th{border:1px solid #333;padding:0.8mm 1mm;font-size:6.5pt;text-align:center;background:#f0f0f0;font-weight:700}
+.rh td{border:1px solid #333;padding:0.5mm 1.5mm;font-size:6.5pt;vertical-align:middle;height:7mm}
+.rh .yc{width:10mm;text-align:center}
+.rh .mc{width:7mm;text-align:center}
+.rh .sec-row td{text-align:center;font-weight:700;background:#f5f5f5}
+.rh .end-row td:last-child{text-align:right}
+
+/* Text boxes */
+.r-tbox{border:1px solid #333;padding:1.5mm 2mm;display:flex;flex-direction:column}
+.r-tbox-lbl{font-size:6pt;font-weight:700;border-bottom:1px solid #ccc;padding-bottom:1mm;margin-bottom:1mm}
+.r-tbox-body{font-size:6.5pt;white-space:pre-wrap;word-break:break-all;flex:1}
+
+/* PRINT */
+@media print{
+  *{-webkit-print-color-adjust:exact;print-color-adjust:exact}
+  .app-header,.tabs,.section,.bottom-bar,.saved-notice,.modal-top,.modal-actions,.preview-hint{display:none!important}
+  .modal{display:block!important;position:static;background:none;overflow:visible}
+  .preview-scroll{padding:0;overflow:visible;display:block}
+  #previewWrapper{width:auto!important;height:auto!important;overflow:visible!important}
+  .preview-scaler{transform:none!important}
+  .resume{box-shadow:none;overflow:visible;page-break-inside:avoid;break-inside:avoid}
+  @page{size:A4 landscape;margin:0}
+}
+</style>
+</head>
+<body>
+
+<div class="app-header">履歴書作成アプリ</div>
+
+<div class="tabs">
+  <div class="tab active" data-tab="personal">個人情報</div>
+  <div class="tab" data-tab="history">学歴・職歴</div>
+  <div class="tab" data-tab="license">免許・資格</div>
+  <div class="tab" data-tab="other">志望・その他</div>
+</div>
+
+<!-- ========== 個人情報 ========== -->
+<div class="section active" id="tab-personal">
+  <div class="card">
+    <div class="card-title">氏名・生年月日</div>
+    <div class="field">
+      <label>ふりがな（氏名）</label>
+      <input type="text" id="furigana" placeholder="やまだ たろう">
+    </div>
+    <div class="field">
+      <label>氏名</label>
+      <input type="text" id="name" placeholder="山田 太郎">
+    </div>
+    <div class="field">
+      <label>生年月日</label>
+      <div style="display:flex;gap:6px;align-items:center">
+        <input type="number" id="birth-year" placeholder="1990" min="1900" max="2099" inputmode="numeric" style="flex:2;padding:10px 12px;border:1.5px solid #e2e8f0;border-radius:8px;font-size:15px;background:#f8fafc;outline:none;-webkit-appearance:none">
+        <span style="color:#64748b;font-size:13px">年</span>
+        <select id="birth-month" style="flex:1;padding:10px 8px;border:1.5px solid #e2e8f0;border-radius:8px;font-size:15px;background:#f8fafc;outline:none;-webkit-appearance:none">
+          <option value="">月</option>
+          <option value="1">1</option><option value="2">2</option><option value="3">3</option>
+          <option value="4">4</option><option value="5">5</option><option value="6">6</option>
+          <option value="7">7</option><option value="8">8</option><option value="9">9</option>
+          <option value="10">10</option><option value="11">11</option><option value="12">12</option>
+        </select>
+        <span style="color:#64748b;font-size:13px">月</span>
+        <select id="birth-day" style="flex:1;padding:10px 8px;border:1.5px solid #e2e8f0;border-radius:8px;font-size:15px;background:#f8fafc;outline:none;-webkit-appearance:none">
+          <option value="">日</option>
+          <option value="1">1</option><option value="2">2</option><option value="3">3</option><option value="4">4</option><option value="5">5</option>
+          <option value="6">6</option><option value="7">7</option><option value="8">8</option><option value="9">9</option><option value="10">10</option>
+          <option value="11">11</option><option value="12">12</option><option value="13">13</option><option value="14">14</option><option value="15">15</option>
+          <option value="16">16</option><option value="17">17</option><option value="18">18</option><option value="19">19</option><option value="20">20</option>
+          <option value="21">21</option><option value="22">22</option><option value="23">23</option><option value="24">24</option><option value="25">25</option>
+          <option value="26">26</option><option value="27">27</option><option value="28">28</option><option value="29">29</option><option value="30">30</option>
+          <option value="31">31</option>
+        </select>
+        <span style="color:#64748b;font-size:13px">日</span>
+      </div>
+    </div>
+    <div class="row2">
+      <div class="field" style="display:none"><input type="hidden" id="birthdate"></div>
+      <div class="field">
+        <label>性別（任意）</label>
+        <select id="gender">
+          <option value="">未記載</option>
+          <option value="男">男</option>
+          <option value="女">女</option>
+          <option value="その他">その他</option>
+        </select>
+      </div>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-title">現住所・連絡先</div>
+    <div class="field">
+      <label>現住所ふりがな</label>
+      <input type="text" id="address_furigana" placeholder="とうきょうと しぶやく〇〇">
+    </div>
+    <div class="row2">
+      <div class="field" style="max-width:130px">
+        <label>郵便番号</label>
+        <input type="text" id="address_zip" placeholder="123-4567" maxlength="8" inputmode="numeric">
+      </div>
+      <div class="field">
+        <label>現住所</label>
+        <input type="text" id="address" placeholder="東京都渋谷区〇〇1-2-3">
+      </div>
+    </div>
+    <div class="field">
+      <label>電話番号</label>
+      <input type="tel" id="phone" placeholder="090-1234-5678">
+    </div>
+    <div class="field">
+      <label>メールアドレス</label>
+      <input type="email" id="email" placeholder="example@email.com">
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-title">連絡先（現住所と異なる場合）</div>
+    <div style="font-size:12px;color:#64748b;margin-bottom:10px">同じ場合は入力不要</div>
+    <div class="row2">
+      <div class="field" style="max-width:130px">
+        <label>郵便番号</label>
+        <input type="text" id="contact_zip" placeholder="123-4567" maxlength="8" inputmode="numeric">
+      </div>
+      <div class="field">
+        <label>連絡先住所</label>
+        <input type="text" id="contact" placeholder="省略すると現住所を表示">
+      </div>
+    </div>
+    <div class="field">
+      <label>連絡先電話</label>
+      <input type="tel" id="contact_phone" placeholder="省略すると上記電話番号を表示">
+    </div>
+  </div>
+</div>
+
+<!-- ========== 学歴・職歴 ========== -->
+<div class="section" id="tab-history">
+  <div class="card">
+    <div class="card-title">学歴（自動計算） <span class="badge badge-auto">自動</span></div>
+    <div id="school-auto-info" class="auto-info">
+      「個人情報」タブで生年月日を入力すると、入学・卒業年が自動計算されます
+    </div>
+    <div id="school-dates-display" style="display:none;font-size:13px;line-height:2;color:#334155;margin-bottom:12px;padding:10px;background:#f8fafc;border-radius:8px;border:1px solid #e2e8f0"></div>
+
+    <div>
+      <div class="field">
+        <label>高等学校名</label>
+        <input type="text" id="high-school" placeholder="○○高等学校">
+      </div>
+      <div class="field">
+        <label>学科・コース（省略可）</label>
+        <input type="text" id="high-school-dept" placeholder="普通科">
+      </div>
+      <div class="field">
+        <label>卒業状況</label>
+        <select id="high-school-status">
+          <option value="卒業">卒業</option>
+          <option value="在学中">在学中</option>
+          <option value="中退">中途退学</option>
+        </select>
+      </div>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-title">大学・短大・専門学校 <span class="badge badge-auto">自動年月</span></div>
+    <label style="display:flex;align-items:center;gap:8px;font-size:14px;margin-bottom:12px;cursor:pointer">
+      <input type="checkbox" id="include-uni" style="width:auto;height:auto">
+      大学・短大・専門学校を含める
+    </label>
+    <div id="uni-fields" style="display:none">
+      <div class="auto-info" id="uni-auto-info">生年月日を入力すると年月が自動計算されます</div>
+      <div class="field">
+        <label>学校名</label>
+        <input type="text" id="uni-school" placeholder="○○大学">
+      </div>
+      <div class="field">
+        <label>学部・学科・専攻</label>
+        <input type="text" id="uni-dept" placeholder="経済学部経済学科">
+      </div>
+      <div class="field">
+        <label>種別 <span style="font-size:11px;color:#64748b">←卒業年の自動計算に使用</span></label>
+        <select id="uni-type">
+          <option value="4">4年制大学</option>
+          <option value="2">短期大学（2年）</option>
+          <option value="2s">専門学校（2年）</option>
+          <option value="3s">専門学校（3年）</option>
+        </select>
+      </div>
+      <div class="field">
+        <label>卒業状況</label>
+        <select id="uni-status">
+          <option value="卒業">卒業</option>
+          <option value="卒業見込">卒業見込</option>
+          <option value="在学中">在学中</option>
+          <option value="中退">中途退学</option>
+        </select>
+      </div>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-title">職歴 <span class="badge badge-work">職歴</span></div>
+    <div id="work-entries"></div>
+    <button class="btn-add" onclick="addWorkEntry()">＋ 職歴を追加</button>
+  </div>
+
+  <div class="card">
+    <div class="card-title">その他学歴・研修 <span class="badge badge-edu">任意</span></div>
+    <div id="extra-edu-entries"></div>
+    <button class="btn-add" onclick="addExtraEduEntry()">＋ その他学歴・研修を追加</button>
+  </div>
+</div>
+
+<!-- ========== 免許・資格 ========== -->
+<div class="section" id="tab-license">
+  <div class="card">
+    <div class="card-title">免許・資格 <span class="badge badge-lic">資格</span></div>
+    <div id="license-entries"></div>
+    <button class="btn-add" onclick="addLicenseEntry()">＋ 免許・資格を追加</button>
+  </div>
+</div>
+
+<!-- ========== 志望・その他 ========== -->
+<div class="section" id="tab-other">
+  <div class="card">
+    <div class="card-title">志望動機・特技・自己PR</div>
+    <div class="field">
+      <label>志望動機、特技、自己PR、アピールポイントなど</label>
+      <textarea id="motivation" rows="6" placeholder="志望動機、特技、自己PRなどを入力してください"></textarea>
+    </div>
+  </div>
+  <div class="card">
+    <div class="card-title">本人希望記入欄</div>
+    <div class="field">
+      <label>給料・職種・勤務時間・勤務地などの希望</label>
+      <textarea id="requests" rows="4" placeholder="特になければ「貴社規定に従います」など"></textarea>
+    </div>
+  </div>
+</div>
+
+<!-- BOTTOM BAR -->
+<div class="bottom-bar">
+  <button class="btn-save" onclick="saveData()">保存</button>
+  <button class="btn-export" onclick="openFileModal('export')">書出</button>
+  <button class="btn-import" onclick="openFileModal('import')">読込</button>
+  <button class="btn-primary" onclick="showPreview()">プレビュー・印刷</button>
+</div>
+
+<div class="saved-notice" id="savedNotice">保存しました</div>
+
+<!-- ========== FILE MODAL ========== -->
+<div class="file-modal" id="fileModal">
+  <div class="file-modal-box">
+    <!-- Export view -->
+    <div id="fileModal-export">
+      <h3>データを書き出す（エクスポート）</h3>
+      <p>入力した内容をJSONファイルとして<b>好きなフォルダに保存</b>できます。<br>次回「読込」から同じファイルを選べば復元できます。</p>
+      <button class="file-modal-btn green" onclick="exportData()">JSONファイルを保存する</button>
+      <button class="file-modal-btn gray" onclick="closeFileModal()">キャンセル</button>
+    </div>
+    <!-- Import view -->
+    <div id="fileModal-import" style="display:none">
+      <h3>データを読み込む（インポート）</h3>
+      <p>以前「書き出し」で保存したJSONファイルを選んでください。<br><b style="color:#dc2626">現在の入力内容は上書きされます。</b></p>
+      <button class="file-modal-btn purple" onclick="document.getElementById('importInput').click()">JSONファイルを選ぶ</button>
+      <input type="file" id="importInput" accept=".json" style="display:none" onchange="importData(this)">
+      <button class="file-modal-btn gray" onclick="closeFileModal()">キャンセル</button>
+    </div>
+  </div>
+</div>
+
+<!-- ========== PREVIEW MODAL ========== -->
+<div class="modal" id="previewModal">
+  <div class="modal-top">
+    <h2>プレビュー（A4横サイズ）</h2>
+    <button class="btn-modal-close" onclick="closePreview()">×</button>
+  </div>
+  <div class="modal-actions">
+    <button class="btn-print" onclick="printResume()">印刷・PDF保存</button>
+  </div>
+  <div class="preview-hint">ピンチでズーム可能 / スクロールして全体を確認</div>
+  <div class="preview-scroll" id="previewScroll">
+    <div id="previewWrapper">
+      <div class="preview-scaler" id="previewScaler">
+
+        <!-- ========== A4 RESUME ========== -->
+        <div class="resume" id="resumeEl">
+
+          <!-- LEFT COLUMN -->
+          <div class="r-col-l">
+
+            <!-- ★JIS標準 個人情報エリア -->
+
+            <!-- [上部] タイトル＋ふりがな・氏名（左）＋写真ボックス（右・独立） -->
+            <div style="display:flex;width:100%;align-items:stretch;gap:3mm;margin-bottom:0">
+              <!-- 左: タイトル + ふりがな・氏名テーブル -->
+              <div style="flex:1;display:flex;flex-direction:column;min-width:0">
+                <div style="display:flex;justify-content:space-between;align-items:baseline;padding-bottom:0.8mm">
+                  <span class="r-title">履　歴　書</span>
+                  <span class="r-date-txt" id="r-date"></span>
+                </div>
+                <table class="rt" style="width:100%;table-layout:fixed">
+                  <colgroup>
+                    <col style="width:13mm">
+                    <col>
+                  </colgroup>
+                  <tr>
+                    <td class="lbl" style="font-size:5pt">ふりがな</td>
+                    <td id="r-furigana" style="font-size:6.5pt;height:9mm"></td>
+                  </tr>
+                  <tr>
+                    <td class="lbl">氏名</td>
+                    <td style="height:19mm"><span class="r-name-big" id="r-name"></span></td>
+                  </tr>
+                </table>
+              </div>
+              <!-- 右: 写真ボックス（独立した破線枠・表とは別要素） -->
+              <div style="width:30mm;border:1px dashed #999;padding:2mm;text-align:center;flex-shrink:0;box-sizing:border-box;vertical-align:top">
+                <div style="font-size:6pt;font-weight:bold;margin-bottom:2mm">写真を貼る位置</div>
+                <div style="font-size:4.5pt;color:#444;text-align:left;line-height:1.8">
+                  写真を貼る必要がある場合<br>
+                  1. 縦　36〜40mm<br>
+                  　横　24〜30mm<br>
+                  2.本人単身胸から上<br>
+                  3.裏面のりづけ
+                </div>
+              </div>
+            </div>
+
+            <!-- [下部] 生年月日・性別・住所・連絡先（全幅テーブル） -->
+            <table class="rt" style="width:100%;table-layout:fixed">
+              <colgroup>
+                <col style="width:13mm"><!-- 左ラベル -->
+                <col><!-- 左コンテンツ(auto) -->
+                <col style="width:13mm"><!-- 右ラベル -->
+                <col style="width:46mm"><!-- 右コンテンツ -->
+              </colgroup>
+              <!-- 生年月日 ＋ 性別 -->
+              <tr>
+                <td colspan="2" style="font-size:6.5pt;padding:1mm 1.5mm">
+                  <span id="r-birth"></span>　生（満　<span id="r-age"></span>　歳）
+                </td>
+                <td class="lbl" style="font-size:4.5pt">※性別</td>
+                <td id="r-gender"></td>
+              </tr>
+              <!-- 住所ふりがな ＋ 電話 -->
+              <tr>
+                <td class="lbl" style="font-size:5pt">ふりがな</td>
+                <td id="r-address-furigana" style="font-size:6.5pt"></td>
+                <td class="lbl" style="font-size:5pt">電話</td>
+                <td id="r-phone"></td>
+              </tr>
+              <!-- 現住所 ＋ E-mail -->
+              <tr>
+                <td class="lbl" style="font-size:4.5pt;line-height:1.5">現住所<br>〒</td>
+                <td id="r-address"></td>
+                <td class="lbl" style="font-size:4.5pt">E-mail</td>
+                <td id="r-email" style="font-size:5.5pt;word-break:break-all"></td>
+              </tr>
+              <!-- 空白行（住所と連絡先の区切り） -->
+              <tr><td colspan="4" style="height:2.5mm;padding:0"></td></tr>
+              <!-- 連絡先ふりがな ＋ 電話 -->
+              <tr>
+                <td class="lbl" style="font-size:5pt">ふりがな</td>
+                <td></td>
+                <td class="lbl" style="font-size:5pt">電話</td>
+                <td id="r-contact-phone"></td>
+              </tr>
+              <!-- 連絡先住所 ＋ E-mail -->
+              <tr>
+                <td class="lbl" style="font-size:4.5pt;line-height:1.5">連絡先<br>〒</td>
+                <td id="r-contact" style="font-size:5.5pt"></td>
+                <td class="lbl" style="font-size:4.5pt">E-mail</td>
+                <td style="font-size:6pt"></td>
+              </tr>
+            </table>
+
+            <table class="rh" style="flex:1">
+              <thead>
+                <tr>
+                  <th class="yc">年</th><th class="mc">月</th>
+                  <th>学　歴・職　歴　（各別にまとめて書く）</th>
+                </tr>
+              </thead>
+              <tbody id="r-hist-left"></tbody>
+            </table>
+            <div style="font-size:4.5pt;padding-top:0.8mm">※「性別」欄：記載は任意です。未記載とすることも可能です。</div>
+          </div>
+
+          <!-- RIGHT COLUMN -->
+          <div class="r-col-r">
+            <table class="rh">
+              <thead>
+                <tr>
+                  <th class="yc">年</th><th class="mc">月</th>
+                  <th>学　歴・職　歴　（各別にまとめて書く）</th>
+                </tr>
+              </thead>
+              <tbody id="r-hist-right"></tbody>
+            </table>
+
+            <table class="rh">
+              <thead>
+                <tr>
+                  <th class="yc">年</th><th class="mc">月</th>
+                  <th>免　許・資　格</th>
+                </tr>
+              </thead>
+              <tbody id="r-licenses"></tbody>
+            </table>
+
+            <div class="r-tbox" style="flex:1.2">
+              <div class="r-tbox-lbl">志望の動機、特技、自己PR、アピールポイントなど</div>
+              <div class="r-tbox-body" id="r-motivation"></div>
+            </div>
+
+            <div class="r-tbox" style="flex:1">
+              <div class="r-tbox-lbl">本人希望記入欄（特に給料、職種、勤務時間、勤務地、その他についての希望などがあれば記入）</div>
+              <div class="r-tbox-body" id="r-requests" style="position:relative;overflow:hidden">
+                <div style="position:absolute;inset:0;display:flex;flex-direction:column;pointer-events:none">
+                  <div style="flex:1;border-bottom:1px solid #ccc"></div>
+                  <div style="flex:1;border-bottom:1px solid #ccc"></div>
+                  <div style="flex:1;border-bottom:1px solid #ccc"></div>
+                  <div style="flex:1"></div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+        </div><!-- .resume -->
+      </div><!-- .preview-scaler -->
+    </div><!-- #previewWrapper -->
+  </div><!-- .preview-scroll -->
+</div><!-- .modal -->
+
+<script>
+// ===================== STATE =====================
+const STORAGE_KEY = 'resume_data_v2';
+let workEntries = [], extraEduEntries = [], licenseEntries = [];
+let wId = 0, eId = 0, lId = 0;
+
+// ===================== INIT =====================
+document.addEventListener('DOMContentLoaded', () => {
+  // Tab switching
+  document.querySelectorAll('.tab').forEach(tab => {
+    tab.addEventListener('click', () => {
+      document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+      document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
+      tab.classList.add('active');
+      document.getElementById('tab-' + tab.dataset.tab).classList.add('active');
+    });
+  });
+
+  // 年・月・日を統合してbirthdate隠しフィールドに反映
+  // 日付フィールドの同期（プレビュー用）
+  function syncBirthdate() {
+    const y = document.getElementById('birth-year').value;
+    const m = document.getElementById('birth-month').value;
+    const d = document.getElementById('birth-day').value;
+    if (y && m && d) {
+      const mm = String(m).padStart(2,'0');
+      const dd = String(d).padStart(2,'0');
+      document.getElementById('birthdate').value = `${y}-${mm}-${dd}`;
+    }
+  }
+  // 年・月が入力されたら学歴を即計算（日は不要）
+  document.getElementById('birth-year').addEventListener('input', () => { syncBirthdate(); updateSchoolDates(); });
+  document.getElementById('birth-month').addEventListener('change', () => { syncBirthdate(); updateSchoolDates(); });
+  document.getElementById('birth-day').addEventListener('change', syncBirthdate);
+  document.getElementById('include-uni').addEventListener('change', function() {
+    document.getElementById('uni-fields').style.display = this.checked ? 'block' : 'none';
+    updateSchoolDates();
+  });
+  document.getElementById('uni-type').addEventListener('change', updateSchoolDates);
+
+  loadData();
+  renderAll();
+  window.addEventListener('resize', scalePreview);
+});
+
+// ===================== SCHOOL DATE CALC =====================
+function updateSchoolDates() {
+  const birthYear  = parseInt(document.getElementById('birth-year').value);
+  const birthMonth = parseInt(document.getElementById('birth-month').value);
+  if (!birthYear || !birthMonth || birthYear < 1900) {
+    document.getElementById('school-auto-info').style.display = 'block';
+    document.getElementById('school-dates-display').style.display = 'none';
+    window._sd = null;
+    return;
+  }
+  document.getElementById('school-auto-info').style.display = 'none';
+  document.getElementById('school-dates-display').style.display = 'block';
+
+  // 1〜3月生まれ（早生まれ）は前年度の学年、4〜12月はそのまま
+  const cy = birthMonth <= 3 ? birthYear - 1 : birthYear;
+
+  const sd = {
+    highStart:{y:cy+16,m:4}, highEnd:{y:cy+19,m:3}
+  };
+
+  const uniTypeVal = v('uni-type') || '4';
+  const uniYears = uniTypeVal === '4' ? 4 : uniTypeVal === '3s' ? 3 : 2;
+  sd.uniStart = {y:cy+19,m:4};
+  sd.uniEnd = {y:cy+19+uniYears,m:3};
+
+  window._sd = sd;
+
+  document.getElementById('school-dates-display').innerHTML =
+    `高校: <b>${sd.highStart.y}年4月</b> 入学 → <b>${sd.highEnd.y}年3月</b> 卒業`;
+
+  const incUni = document.getElementById('include-uni').checked;
+  if (incUni) {
+    document.getElementById('uni-auto-info').textContent =
+      `入学: ${sd.uniStart.y}年4月　卒業: ${sd.uniEnd.y}年3月`;
+  }
+}
+
+// ===================== WORK ENTRIES =====================
+function addWorkEntry(data) {
+  const id = ++wId;
+  workEntries.push(Object.assign({id, company:'', dept:'', sy:'', sm:'', ey:'', em:'', status:'退職'}, data||{}));
+  renderWorkEntries();
+}
+function removeWorkEntry(id) { workEntries = workEntries.filter(e=>e.id!==id); renderWorkEntries(); }
+function setWork(id, f, val) { const e = workEntries.find(e=>e.id===id); if(e) e[f]=val; }
+
+function renderWorkEntries() {
+  const c = document.getElementById('work-entries');
+  if (!workEntries.length) { c.innerHTML = '<div style="text-align:center;color:#94a3b8;font-size:13px;padding:8px 0">職歴はまだありません</div>'; return; }
+  c.innerHTML = workEntries.map(e => `
+    <div class="entry-card">
+      <div class="entry-card-header"><span class="badge badge-work">職歴</span><button class="btn-del" onclick="removeWorkEntry(${e.id})">×</button></div>
+      <div class="field"><label>会社名</label><input type="text" value="${esc(e.company)}" placeholder="株式会社○○" oninput="setWork(${e.id},'company',this.value)"></div>
+      <div class="field"><label>部署・職種（省略可）</label><input type="text" value="${esc(e.dept)}" placeholder="営業部" oninput="setWork(${e.id},'dept',this.value)"></div>
+      <div class="row2">
+        <div class="field"><label>入社年</label><input type="number" value="${esc(e.sy)}" placeholder="2020" inputmode="numeric" oninput="setWork(${e.id},'sy',this.value)"></div>
+        <div class="field"><label>入社月</label><input type="number" value="${esc(e.sm)}" placeholder="4" min="1" max="12" inputmode="numeric" oninput="setWork(${e.id},'sm',this.value)"></div>
+      </div>
+      <div class="field"><label>状態</label>
+        <select onchange="setWork(${e.id},'status',this.value)">
+          <option value="退職" ${e.status==='退職'?'selected':''}>退職</option>
+          <option value="在職中" ${e.status==='在職中'?'selected':''}>現在に至る（在職中）</option>
+        </select>
+      </div>
+      <div id="exit-row-${e.id}" style="${e.status==='在職中'?'display:none':''}">
+        <div class="row2">
+          <div class="field"><label>退社年</label><input type="number" value="${esc(e.ey)}" placeholder="2023" inputmode="numeric" oninput="setWork(${e.id},'ey',this.value)"></div>
+          <div class="field"><label>退社月</label><input type="number" value="${esc(e.em)}" placeholder="3" min="1" max="12" inputmode="numeric" oninput="setWork(${e.id},'em',this.value)"></div>
+        </div>
+      </div>
+    </div>
+  `).join('');
+
+  // Wire up status selects to toggle exit row
+  workEntries.forEach(e => {
+    const sel = document.querySelector(`.entry-card select[onchange="setWork(${e.id},'status',this.value)"]`);
+    if (sel) sel.addEventListener('change', () => {
+      const row = document.getElementById(`exit-row-${e.id}`);
+      if (row) row.style.display = sel.value === '在職中' ? 'none' : '';
+    });
+  });
+}
+
+// ===================== EXTRA EDU =====================
+function addExtraEduEntry(data) {
+  const id = ++eId;
+  extraEduEntries.push(Object.assign({id, year:'', month:'', content:''}, data||{}));
+  renderExtraEduEntries();
+}
+function removeExtraEduEntry(id) { extraEduEntries = extraEduEntries.filter(e=>e.id!==id); renderExtraEduEntries(); }
+function setEdu(id, f, val) { const e = extraEduEntries.find(e=>e.id===id); if(e) e[f]=val; }
+
+function renderExtraEduEntries() {
+  const c = document.getElementById('extra-edu-entries');
+  if (!extraEduEntries.length) { c.innerHTML = '<div style="text-align:center;color:#94a3b8;font-size:13px;padding:8px 0">その他学歴・研修はまだありません</div>'; return; }
+  c.innerHTML = extraEduEntries.map(e => `
+    <div class="entry-card">
+      <div class="entry-card-header"><span class="badge badge-edu">学歴</span><button class="btn-del" onclick="removeExtraEduEntry(${e.id})">×</button></div>
+      <div class="row2">
+        <div class="field"><label>年</label><input type="number" value="${esc(e.year)}" placeholder="2020" inputmode="numeric" oninput="setEdu(${e.id},'year',this.value)"></div>
+        <div class="field"><label>月</label><input type="number" value="${esc(e.month)}" placeholder="4" min="1" max="12" inputmode="numeric" oninput="setEdu(${e.id},'month',this.value)"></div>
+      </div>
+      <div class="field"><label>学校名・内容</label><input type="text" value="${esc(e.content)}" placeholder="○○専門学校 ○○科 入学" oninput="setEdu(${e.id},'content',this.value)"></div>
+    </div>
+  `).join('');
+}
+
+// ===================== LICENSE ENTRIES =====================
+function addLicenseEntry(data) {
+  const id = ++lId;
+  licenseEntries.push(Object.assign({id, year:'', month:'', content:''}, data||{}));
+  renderLicenseEntries();
+}
+function removeLicenseEntry(id) { licenseEntries = licenseEntries.filter(e=>e.id!==id); renderLicenseEntries(); }
+function setLic(id, f, val) { const e = licenseEntries.find(e=>e.id===id); if(e) e[f]=val; }
+
+function renderLicenseEntries() {
+  const c = document.getElementById('license-entries');
+  if (!licenseEntries.length) { c.innerHTML = '<div style="text-align:center;color:#94a3b8;font-size:13px;padding:8px 0">免許・資格はまだありません</div>'; return; }
+  c.innerHTML = licenseEntries.map(e => `
+    <div class="entry-card">
+      <div class="entry-card-header"><span class="badge badge-lic">資格</span><button class="btn-del" onclick="removeLicenseEntry(${e.id})">×</button></div>
+      <div class="row2">
+        <div class="field"><label>取得年</label><input type="number" value="${esc(e.year)}" placeholder="2022" inputmode="numeric" oninput="setLic(${e.id},'year',this.value)"></div>
+        <div class="field"><label>取得月</label><input type="number" value="${esc(e.month)}" placeholder="6" min="1" max="12" inputmode="numeric" oninput="setLic(${e.id},'month',this.value)"></div>
+      </div>
+      <div class="field"><label>免許・資格名</label><input type="text" value="${esc(e.content)}" placeholder="普通自動車第一種運転免許 取得" oninput="setLic(${e.id},'content',this.value)"></div>
+    </div>
+  `).join('');
+}
+
+function renderAll() {
+  renderWorkEntries();
+  renderExtraEduEntries();
+  renderLicenseEntries();
+}
+
+// ===================== SAVE / LOAD =====================
+function getFormData() {
+  return {
+    furigana:v('furigana'), name:v('name'), birthdate:v('birthdate'),
+    birth_year:v('birth-year'), birth_month:v('birth-month'), birth_day:v('birth-day'), gender:v('gender'),
+    address_furigana:v('address_furigana'), address_zip:v('address_zip'), address:v('address'), phone:v('phone'), email:v('email'),
+    contact_zip:v('contact_zip'), contact:v('contact'), contact_phone:v('contact_phone'),
+    high_school:v('high-school'), high_school_dept:v('high-school-dept'), high_school_status:v('high-school-status'),
+    include_uni:document.getElementById('include-uni').checked,
+    uni_school:v('uni-school'), uni_dept:v('uni-dept'), uni_type:v('uni-type'), uni_status:v('uni-status'),
+    motivation:v('motivation'), requests:v('requests'),
+    work_entries:workEntries, extra_edu_entries:extraEduEntries, license_entries:licenseEntries,
+    wId, eId, lId
+  };
+}
+
+function saveData() {
+  localStorage.setItem(STORAGE_KEY, JSON.stringify(getFormData()));
+  const n = document.getElementById('savedNotice');
+  n.classList.add('show');
+  setTimeout(() => n.classList.remove('show'), 2000);
+}
+
+function loadData() {
+  const raw = localStorage.getItem(STORAGE_KEY);
+  if (!raw) return;
+  try {
+    const d = JSON.parse(raw);
+    ['furigana','name','birthdate','gender','address_furigana','address_zip','address','phone','email',
+     'contact_zip','contact','contact_phone'].forEach(k => sv(k.replace(/_/g,'-'), d[k]));
+    // 生年月日（年・月・日）を復元
+    if (d.birth_year) sv('birth-year', d.birth_year);
+    if (d.birth_month) sv('birth-month', d.birth_month);
+    if (d.birth_day) sv('birth-day', d.birth_day);
+    if (d.birthdate) document.getElementById('birthdate').value = d.birthdate;
+    sv('high-school', d.high_school); sv('high-school-dept', d.high_school_dept); sv('high-school-status', d.high_school_status);
+    sv('motivation', d.motivation); sv('requests', d.requests);
+    if (d.include_uni) {
+      document.getElementById('include-uni').checked = true;
+      document.getElementById('uni-fields').style.display = 'block';
+    }
+    sv('uni-school', d.uni_school); sv('uni-dept', d.uni_dept); sv('uni-type', d.uni_type); sv('uni-status', d.uni_status);
+    wId = d.wId||0; eId = d.eId||0; lId = d.lId||0;
+    workEntries = d.work_entries||[]; extraEduEntries = d.extra_edu_entries||[]; licenseEntries = d.license_entries||[];
+    updateSchoolDates();
+  } catch(e) { console.error(e); }
+}
+
+// ===================== PREVIEW =====================
+function showPreview() {
+  saveData();
+  generatePreview();
+  document.getElementById('previewModal').classList.add('active');
+  setTimeout(scalePreview, 300);
+}
+
+function closePreview() {
+  document.getElementById('previewModal').classList.remove('active');
+}
+
+function scalePreview() {
+  const resume = document.getElementById('resumeEl');
+  const scroll = document.getElementById('previewScroll');
+  const scaler = document.getElementById('previewScaler');
+  const wrapper = document.getElementById('previewWrapper');
+
+  const availW = scroll.clientWidth - 32;
+  const natW = resume.offsetWidth;
+  const natH = resume.offsetHeight;
+  if (!natW) return;
+
+  const scale = Math.min(availW / natW, 1);
+  scaler.style.transform = `scale(${scale})`;
+  scaler.style.transformOrigin = 'top left';
+  wrapper.style.width = (natW * scale) + 'px';
+  wrapper.style.height = (natH * scale) + 'px';
+}
+
+function generatePreview() {
+  const d = getFormData();
+  const sd = window._sd || {};
+
+  const today = new Date();
+  document.getElementById('r-date').textContent =
+    `${today.getFullYear()}年　${today.getMonth()+1}月　${today.getDate()}日現在`;
+
+  document.getElementById('r-furigana').textContent = d.furigana || '';
+  document.getElementById('r-name').textContent = d.name || '';
+
+  if (d.birth_year && d.birth_month && d.birth_day) {
+    const b = new Date(d.birth_year, d.birth_month - 1, d.birth_day);
+    document.getElementById('r-birth').textContent = `${d.birth_year}年${d.birth_month}月${d.birth_day}日`;
+    document.getElementById('r-age').textContent = calcAge(b);
+  } else {
+    document.getElementById('r-birth').textContent = '';
+    document.getElementById('r-age').textContent = '';
+  }
+  document.getElementById('r-gender').textContent = d.gender || '';
+
+  document.getElementById('r-address-furigana').textContent = d.address_furigana || '';
+  const addrFull = d.address_zip ? `${d.address_zip}　${d.address}` : (d.address || '');
+  document.getElementById('r-address').textContent = addrFull;
+  document.getElementById('r-phone').textContent = d.phone || '';
+  document.getElementById('r-email').textContent = d.email || '';
+
+  // 連絡先（住所・電話を独立表示）
+  const hasContactAddr = d.contact || d.contact_zip;
+  const cAddr = hasContactAddr ? d.contact : '';
+  const cZip = hasContactAddr ? d.contact_zip : '';
+  const contactAddrText = cZip ? `${cZip}　${cAddr}` : cAddr;
+  const contactEl = document.getElementById('r-contact');
+  if (contactAddrText) {
+    contactEl.textContent = contactAddrText;
+  } else {
+    contactEl.innerHTML = '<span style="font-size:4.5pt;color:#444">（現住所以外に連絡を希望する場合のみ記入）</span>';
+  }
+  document.getElementById('r-contact-phone').textContent = d.contact_phone || '';
+
+  // Build history rows
+  const rows = buildHistRows(d, sd);
+  const LEFT_MAX = 17, RIGHT_MAX = 7;
+  const leftRows = rows.slice(0, LEFT_MAX);
+  const rightRows = rows.slice(LEFT_MAX, LEFT_MAX + RIGHT_MAX);
+  while (leftRows.length < LEFT_MAX) leftRows.push({});
+  while (rightRows.length < RIGHT_MAX) rightRows.push({});
+
+  document.getElementById('r-hist-left').innerHTML = renderRows(leftRows);
+  document.getElementById('r-hist-right').innerHTML = renderRows(rightRows);
+
+  // Licenses
+  const licRows = licenseEntries.map(e => ({y:e.year, m:e.month, t:e.content}));
+  while (licRows.length < 6) licRows.push({});
+  document.getElementById('r-licenses').innerHTML = renderRows(licRows.slice(0,6));
+
+  document.getElementById('r-motivation').textContent = d.motivation || '';
+  document.getElementById('r-requests').textContent = d.requests || '';
+}
+
+function buildHistRows(d, sd) {
+  const rows = [];
+  const add = (y, m, t, type) => rows.push({y, m, t, type});
+  const addSec = t => rows.push({sec:t});
+  const addEnd = () => rows.push({end:true});
+
+  addSec('学　歴');
+
+  if (sd.highStart || d.high_school) {
+    const hs = d.high_school || '○○高等学校';
+    const hd = d.high_school_dept ? `　${d.high_school_dept}` : '';
+    const hst = d.high_school_status || '卒業';
+    const hy = sd.highStart ? sd.highStart.y : ''; const hm = sd.highStart ? sd.highStart.m : '';
+    const hey = sd.highEnd ? sd.highEnd.y : ''; const hem = sd.highEnd ? sd.highEnd.m : '';
+    add(hy, hm, hs + hd + '　入学');
+    if (hst === '在学中') add('', '', hs + hd + '　在学中');
+    else if (hst === '中退') add(hey, hem, hs + hd + '　中途退学');
+    else add(hey, hem, hs + hd + '　卒業');
+  }
+
+  if (d.include_uni && (sd.uniStart || d.uni_school)) {
+    const us = d.uni_school || '○○大学';
+    const ud = d.uni_dept ? `　${d.uni_dept}` : '';
+    const ust = d.uni_status || '卒業';
+    const uy = sd.uniStart ? sd.uniStart.y : ''; const um = sd.uniStart ? sd.uniStart.m : '';
+    const uey = sd.uniEnd ? sd.uniEnd.y : ''; const uem = sd.uniEnd ? sd.uniEnd.m : '';
+    add(uy, um, us + ud + '　入学');
+    if (ust === '在学中') add('', '', us + ud + '　在学中');
+    else if (ust === '中退') add(uey, uem, us + ud + '　中途退学');
+    else if (ust === '卒業見込') add(uey, uem, us + ud + '　卒業見込');
+    else add(uey, uem, us + ud + '　卒業');
+  }
+
+  extraEduEntries.forEach(e => add(e.year, e.month, e.content));
+  // 学歴の「以上」は不要
+
+  if (workEntries.length > 0) {
+    addSec('職　歴');
+    workEntries.forEach(e => {
+      const co = e.company || '○○株式会社';
+      const dept = e.dept ? `　${e.dept}` : '';
+      add(e.sy, e.sm, co + dept + '　入社');
+      if (e.status === '在職中') add('', '', '現在に至る');
+      else add(e.ey, e.em, co + '　退社');
+    });
+    addEnd();
+  }
+
+  return rows;
+}
+
+function renderRows(rows) {
+  return rows.map(r => {
+    if (r.sec !== undefined) return `<tr class="sec-row"><td class="yc"></td><td class="mc"></td><td>${eh(r.sec)}</td></tr>`;
+    if (r.end) return `<tr class="end-row"><td class="yc"></td><td class="mc"></td><td>以上</td></tr>`;
+    return `<tr><td class="yc">${eh(r.y||'')}</td><td class="mc">${eh(r.m||'')}</td><td>${eh(r.t||'')}</td></tr>`;
+  }).join('');
+}
+
+function printResume() { window.print(); }
+
+// ===================== FILE EXPORT / IMPORT =====================
+function openFileModal(mode) {
+  document.getElementById('fileModal-export').style.display = mode === 'export' ? '' : 'none';
+  document.getElementById('fileModal-import').style.display = mode === 'import' ? '' : 'none';
+  document.getElementById('fileModal').classList.add('active');
+}
+function closeFileModal() {
+  document.getElementById('fileModal').classList.remove('active');
+}
+
+function exportData() {
+  saveData();
+  const data = getFormData();
+  const json = JSON.stringify(data, null, 2);
+  const blob = new Blob([json], {type: 'application/json'});
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  const today = new Date();
+  const dateStr = `${today.getFullYear()}${String(today.getMonth()+1).padStart(2,'0')}${String(today.getDate()).padStart(2,'0')}`;
+  a.href = url;
+  a.download = `履歴書データ_${dateStr}.json`;
+  a.click();
+  URL.revokeObjectURL(url);
+  closeFileModal();
+  const n = document.getElementById('savedNotice');
+  n.textContent = 'ファイルを保存しました';
+  n.classList.add('show');
+  setTimeout(() => { n.classList.remove('show'); n.textContent = '保存しました'; }, 2500);
+}
+
+function importData(input) {
+  const file = input.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = e => {
+    try {
+      const d = JSON.parse(e.target.result);
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(d));
+      loadData();
+      renderAll();
+      closeFileModal();
+      const n = document.getElementById('savedNotice');
+      n.textContent = '読み込みました';
+      n.classList.add('show');
+      setTimeout(() => { n.classList.remove('show'); n.textContent = '保存しました'; }, 2500);
+    } catch(err) {
+      alert('ファイルの読み込みに失敗しました。正しいJSONファイルを選んでください。');
+    }
+    input.value = '';
+  };
+  reader.readAsText(file);
+}
+
+// ===================== UTILS =====================
+function v(id) { return (document.getElementById(id)||{}).value || ''; }
+function sv(id, val) { const el = document.getElementById(id); if (el && val !== undefined && val !== null) el.value = val; }
+function esc(s) { return (s||'').replace(/"/g,'&quot;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+function eh(s) { return (s||'').toString().replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+function calcAge(birth) {
+  const t = new Date();
+  let age = t.getFullYear() - birth.getFullYear();
+  if (t.getMonth() < birth.getMonth() || (t.getMonth() === birth.getMonth() && t.getDate() < birth.getDate())) age--;
+  return age;
+}
+</script>
+</body>
+</html>
