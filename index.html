@@ -4,6 +4,8 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>履歴書作成アプリ</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.2/jspdf.umd.min.js"></script>
 <style>
 *{box-sizing:border-box;margin:0;padding:0}
 body{font-family:'Hiragino Sans','Yu Gothic',sans-serif;background:#f0f4f8;color:#333;font-size:15px}
@@ -110,7 +112,7 @@ body{font-family:'Hiragino Sans','Yu Gothic',sans-serif;background:#f0f4f8;color
 .rt{width:100%;border-collapse:collapse}
 .rt td,.rt th{border:1px solid #333;padding:1mm 1.5mm;font-size:7pt;vertical-align:middle}
 .rt .lbl{background:white;white-space:nowrap;font-size:6pt;text-align:center;width:16mm}
-.r-name-big{font-size:12pt;font-weight:700}
+.r-name-big{font-size:14pt;font-weight:700}
 
 /* History table */
 .rh{width:100%;border-collapse:collapse}
@@ -376,7 +378,7 @@ body{font-family:'Hiragino Sans','Yu Gothic',sans-serif;background:#f0f4f8;color
   <button class="btn-save" onclick="saveData()">保存</button>
   <button class="btn-export" onclick="openFileModal('export')">書出</button>
   <button class="btn-import" onclick="openFileModal('import')">読込</button>
-  <button class="btn-primary" onclick="showPreview()">プレビュー・印刷</button>
+  <button class="btn-primary" onclick="showPreview()">プレビュー・PDF</button>
 </div>
 
 <div class="saved-notice" id="savedNotice">保存しました</div>
@@ -409,7 +411,7 @@ body{font-family:'Hiragino Sans','Yu Gothic',sans-serif;background:#f0f4f8;color
     <button class="btn-modal-close" onclick="closePreview()">×</button>
   </div>
   <div class="modal-actions">
-    <button class="btn-print" onclick="printResume()">印刷・PDF保存</button>
+    <button class="btn-print" onclick="exportPDF()">PDF保存</button>
   </div>
   <div class="preview-hint">ピンチでズーム可能 / スクロールして全体を確認</div>
   <div class="preview-scroll" id="previewScroll">
@@ -470,41 +472,41 @@ body{font-family:'Hiragino Sans','Yu Gothic',sans-serif;background:#f0f4f8;color
               </colgroup>
               <!-- 生年月日 ＋ 性別 -->
               <tr>
-                <td colspan="2" style="font-size:6.5pt;padding:1mm 1.5mm">
+                <td colspan="2" style="font-size:5.5pt;padding:1mm 1.5mm;height:8mm">
                   <span id="r-birth"></span>　生（満　<span id="r-age"></span>　歳）
                 </td>
                 <td class="lbl" style="font-size:4.5pt">※性別</td>
-                <td id="r-gender"></td>
+                <td id="r-gender" style="font-size:6pt"></td>
               </tr>
               <!-- 住所ふりがな ＋ 電話 -->
               <tr>
-                <td class="lbl" style="font-size:5pt">ふりがな</td>
-                <td id="r-address-furigana" style="font-size:6.5pt"></td>
-                <td class="lbl" style="font-size:5pt">電話</td>
-                <td id="r-phone"></td>
+                <td class="lbl" style="font-size:5pt;border-bottom:1px dashed #333">ふりがな</td>
+                <td id="r-address-furigana" style="font-size:5.5pt;border-bottom:1px dashed #333;height:6mm"></td>
+                <td class="lbl" style="font-size:5pt;border-bottom:1px dashed #333">電話</td>
+                <td id="r-phone" style="border-bottom:1px dashed #333"></td>
               </tr>
               <!-- 現住所 ＋ E-mail -->
               <tr>
-                <td class="lbl" style="font-size:4.5pt">現住所</td>
-                <td id="r-address"></td>
+                <td class="lbl" style="font-size:4.5pt">現住所<br><span style="font-size:4pt">（〒　　）</span></td>
+                <td id="r-address" style="font-size:6.5pt"></td>
                 <td class="lbl" style="font-size:4.5pt">E-mail</td>
-                <td id="r-email" style="font-size:5.5pt;word-break:break-all"></td>
+                <td id="r-email" style="font-size:5pt;word-break:break-all"></td>
               </tr>
-              <!-- 空白行（住所と連絡先の区切り） -->
-              <tr><td colspan="4" style="height:2.5mm;padding:0"></td></tr>
+              <!-- 空白行（住所と連絡先の区切り・PDFではこの行に注記あり） -->
+              <tr><td colspan="4" style="height:3mm;padding:0.5mm 1.5mm;font-size:4pt;color:#444;text-align:left">（現住所以外に連絡を希望する場合のみ記入）</td></tr>
               <!-- 連絡先ふりがな ＋ 電話 -->
               <tr>
-                <td class="lbl" style="font-size:5pt">ふりがな</td>
-                <td></td>
-                <td class="lbl" style="font-size:5pt">電話</td>
-                <td id="r-contact-phone"></td>
+                <td class="lbl" style="font-size:5pt;border-bottom:1px dashed #333">ふりがな</td>
+                <td style="border-bottom:1px dashed #333;height:6mm"></td>
+                <td class="lbl" style="font-size:5pt;border-bottom:1px dashed #333">電話</td>
+                <td id="r-contact-phone" style="border-bottom:1px dashed #333"></td>
               </tr>
               <!-- 連絡先住所 ＋ E-mail -->
               <tr>
-                <td class="lbl" style="font-size:4.5pt">連絡先</td>
-                <td id="r-contact" style="font-size:5.5pt"></td>
+                <td class="lbl" style="font-size:4.5pt">連絡先<br><span style="font-size:4pt">（〒　　）</span></td>
+                <td id="r-contact" style="font-size:6pt"></td>
                 <td class="lbl" style="font-size:4.5pt">E-mail</td>
-                <td style="font-size:6pt"></td>
+                <td style="font-size:5pt"></td>
               </tr>
             </table>
 
@@ -836,7 +838,7 @@ function generatePreview() {
     `${today.getFullYear()}年　${today.getMonth()+1}月　${today.getDate()}日現在`;
 
   document.getElementById('r-furigana').textContent = d.furigana || '';
-  document.getElementById('r-name').textContent = (d.name || '').replace(/ /g, '　');
+  document.getElementById('r-name').textContent = d.name || '';
 
   if (d.birth_year) {
     const yStr = `${d.birth_year}年`;
@@ -857,8 +859,15 @@ function generatePreview() {
     const n = (z||'').replace(/\D/g,'');
     return n.length >= 7 ? `〒${n.slice(0,3)}-${n.slice(3,7)}` : (z ? `〒${z}` : '');
   }
-  document.getElementById('r-address-furigana').textContent = d.address_furigana || '';
+  // 住所ふりがな：郵便番号分のスペースを空けて漢字位置に合わせる
   const zipStr = fmtZip(d.address_zip);
+  const furiganaEl = document.getElementById('r-address-furigana');
+  if (zipStr && d.address_furigana) {
+    furiganaEl.innerHTML = '<span style="visibility:hidden;font-size:6.5pt">' + eh(zipStr) + '　</span>' + eh(d.address_furigana);
+  } else {
+    furiganaEl.textContent = d.address_furigana || '';
+  }
+  // 現住所：〒xxx-xxxx　住所
   const addrFull = zipStr ? `${zipStr}　${d.address||''}` : (d.address || '');
   document.getElementById('r-address').textContent = addrFull;
   document.getElementById('r-phone').textContent = d.phone || '';
@@ -870,11 +879,7 @@ function generatePreview() {
   const cZip = hasContactAddr ? fmtZip(d.contact_zip) : '';
   const contactAddrText = cZip ? `${cZip}　${cAddr}` : cAddr;
   const contactEl = document.getElementById('r-contact');
-  if (contactAddrText) {
-    contactEl.textContent = contactAddrText;
-  } else {
-    contactEl.innerHTML = '<span style="font-size:4.5pt;color:#444">（現住所以外に連絡を希望する場合のみ記入）</span>';
-  }
+  contactEl.textContent = contactAddrText || '';
   document.getElementById('r-contact-phone').textContent = d.contact_phone || '';
 
   // Build history rows
@@ -959,7 +964,54 @@ function renderRows(rows) {
   }).join('');
 }
 
-function printResume() { window.print(); }
+function exportPDF() {
+  const btn = document.querySelector('.btn-print');
+  btn.textContent = 'PDF作成中...';
+  btn.disabled = true;
+  const resume = document.getElementById('resumeEl');
+  // 一時的にscaleをリセットしてフル解像度でキャプチャ
+  const scaler = document.getElementById('previewScaler');
+  const origTransform = scaler.style.transform;
+  scaler.style.transform = 'none';
+  const wrapper = document.getElementById('previewWrapper');
+  const origW = wrapper.style.width;
+  const origH = wrapper.style.height;
+  wrapper.style.width = 'auto';
+  wrapper.style.height = 'auto';
+  wrapper.style.overflow = 'visible';
+
+  html2canvas(resume, {
+    scale: 2,
+    useCORS: true,
+    backgroundColor: '#ffffff',
+    width: resume.scrollWidth,
+    height: resume.scrollHeight
+  }).then(canvas => {
+    const imgData = canvas.toDataURL('image/jpeg', 0.95);
+    const { jsPDF } = window.jspdf;
+    const pdf = new jsPDF({ orientation: 'landscape', unit: 'mm', format: 'a4' });
+    pdf.addImage(imgData, 'JPEG', 0, 0, 297, 210);
+    const today = new Date();
+    const dateStr = `${today.getFullYear()}${String(today.getMonth()+1).padStart(2,'0')}${String(today.getDate()).padStart(2,'0')}`;
+    pdf.save(`履歴書_${dateStr}.pdf`);
+    // スケールを復元
+    scaler.style.transform = origTransform;
+    wrapper.style.width = origW;
+    wrapper.style.height = origH;
+    wrapper.style.overflow = 'hidden';
+    btn.textContent = 'PDF保存';
+    btn.disabled = false;
+  }).catch(err => {
+    console.error(err);
+    alert('PDF作成に失敗しました');
+    scaler.style.transform = origTransform;
+    wrapper.style.width = origW;
+    wrapper.style.height = origH;
+    wrapper.style.overflow = 'hidden';
+    btn.textContent = 'PDF保存';
+    btn.disabled = false;
+  });
+}
 
 // ===================== FILE EXPORT / IMPORT =====================
 function openFileModal(mode) {
