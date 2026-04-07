@@ -95,13 +95,13 @@ body{font-family:'Hiragino Sans','Yu Gothic',sans-serif;background:#f0f4f8;color
   overflow:hidden;
   box-shadow:0 4px 20px rgba(0,0,0,.3)
 }
-.r-col-l{width:148mm;flex-shrink:0;display:flex;flex-direction:column;gap:1mm}
+.r-col-l{width:148mm;flex-shrink:0;display:flex;flex-direction:column;gap:0.5mm}
 .r-col-r{flex:1;display:flex;flex-direction:column;gap:1mm}
 
 /* Title */
 .r-title-row{display:flex;justify-content:space-between;align-items:baseline}
-.r-title{font-size:13pt;font-weight:700;letter-spacing:6pt}
-.r-date-txt{font-size:7pt}
+.r-title{font-size:14pt;font-weight:700;letter-spacing:6pt}
+.r-date-txt{font-size:8pt}
 
 /* Photo + info layout */
 .r-info-area{display:flex;gap:2mm;align-items:flex-start}
@@ -110,14 +110,14 @@ body{font-family:'Hiragino Sans','Yu Gothic',sans-serif;background:#f0f4f8;color
 
 /* Tables */
 .rt{width:100%;border-collapse:collapse}
-.rt td,.rt th{border:1px solid #333;padding:1mm 1.5mm;font-size:7pt;vertical-align:middle}
-.rt .lbl{background:white;white-space:nowrap;font-size:6pt;text-align:center;width:16mm}
-.r-name-big{font-size:14pt;font-weight:700}
+.rt td,.rt th{border:1px solid #333;padding:1mm 1.5mm;font-size:8pt;vertical-align:middle}
+.rt .lbl{background:white;white-space:nowrap;font-size:7pt;text-align:center;width:17mm}
+.r-name-big{font-size:16pt;font-weight:700;word-spacing:3mm}
 
 /* History table */
 .rh{width:100%;border-collapse:collapse}
-.rh th{border:1px solid #333;padding:0.8mm 1mm;font-size:6.5pt;text-align:center;background:white;font-weight:700}
-.rh td{border:1px solid #333;padding:0.5mm 1.5mm;font-size:6.5pt;vertical-align:middle;height:7mm}
+.rh th{border:1px solid #333;padding:0.8mm 1mm;font-size:7.5pt;text-align:center;background:white;font-weight:700}
+.rh td{border:1px solid #333;padding:0.5mm 1.5mm;font-size:7pt;vertical-align:middle;height:7mm}
 .rh .yc{width:10mm;text-align:center}
 .rh .mc{width:7mm;text-align:center}
 .rh .sec-row td{text-align:center;font-weight:700;background:white}
@@ -436,16 +436,16 @@ body{font-family:'Hiragino Sans','Yu Gothic',sans-serif;background:#f0f4f8;color
                 </div>
                 <table class="rt" style="width:100%;table-layout:fixed">
                   <colgroup>
-                    <col style="width:16mm">
+                    <col style="width:17mm">
                     <col>
                   </colgroup>
                   <tr>
-                    <td class="lbl" style="font-size:5pt;border-bottom:1px dashed #333">ふりがな</td>
-                    <td id="r-furigana" style="font-size:7pt;height:6mm;border-bottom:1px dashed #333"></td>
+                    <td class="lbl" style="font-size:6pt;border-bottom:1px dashed #333">ふりがな</td>
+                    <td id="r-furigana" style="font-size:8pt;height:5mm;border-bottom:1px dashed #333"></td>
                   </tr>
                   <tr>
-                    <td class="lbl">氏名</td>
-                    <td style="height:15mm"><span class="r-name-big" id="r-name"></span></td>
+                    <td class="lbl" style="font-size:7pt">氏名</td>
+                    <td style="height:13mm"><span class="r-name-big" id="r-name"></span></td>
                   </tr>
                 </table>
               </div>
@@ -465,47 +465,45 @@ body{font-family:'Hiragino Sans','Yu Gothic',sans-serif;background:#f0f4f8;color
             <!-- [下部] 生年月日・性別・住所・連絡先（全幅テーブル） -->
             <table class="rt" style="width:100%;table-layout:fixed">
               <colgroup>
-                <col style="width:16mm"><!-- 左ラベル -->
+                <col style="width:17mm"><!-- 左ラベル -->
                 <col><!-- 左コンテンツ(auto) -->
-                <col style="width:10mm"><!-- 右ラベル -->
-                <col style="width:26mm"><!-- 右コンテンツ -->
+                <col style="width:13mm"><!-- 右ラベル -->
+                <col style="width:35mm"><!-- 右コンテンツ -->
               </colgroup>
-              <!-- 生年月日 ＋ 性別 -->
+              <!-- 生年月日 ＋ ※性別 -->
               <tr>
-                <td colspan="2" style="font-size:5.5pt;padding:1mm 1.5mm;height:8mm">
-                  <span id="r-birth"></span>　生（満　<span id="r-age"></span>　歳）
+                <td colspan="2" style="font-size:8pt;padding:1.5mm 2mm;height:7mm">
+                  <span id="r-birth"></span>生（満<span id="r-age"></span>歳）
                 </td>
-                <td class="lbl" style="font-size:4.5pt">※性別</td>
-                <td id="r-gender" style="font-size:6pt"></td>
+                <td class="lbl" style="font-size:6pt">※性別</td>
+                <td id="r-gender" style="font-size:8pt;text-align:center"></td>
               </tr>
               <!-- 住所ふりがな ＋ 電話 -->
               <tr>
-                <td class="lbl" style="font-size:5pt;border-bottom:1px dashed #333">ふりがな</td>
-                <td id="r-address-furigana" style="font-size:5.5pt;border-bottom:1px dashed #333;height:6mm"></td>
-                <td class="lbl" style="font-size:5pt;border-bottom:1px dashed #333">電話</td>
-                <td id="r-phone" style="border-bottom:1px dashed #333"></td>
+                <td class="lbl" style="font-size:6pt;border-bottom:1px dashed #333">ふりがな</td>
+                <td id="r-address-furigana" style="font-size:6pt;border-bottom:1px dashed #333;height:5.5mm"></td>
+                <td class="lbl" style="font-size:7pt;border-bottom:1px dashed #333">電話</td>
+                <td id="r-phone" style="font-size:7pt;border-bottom:1px dashed #333"></td>
               </tr>
               <!-- 現住所 ＋ E-mail -->
               <tr>
-                <td class="lbl" style="font-size:4.5pt">現住所<br><span style="font-size:4pt">（〒　　）</span></td>
-                <td id="r-address" style="font-size:6.5pt"></td>
-                <td class="lbl" style="font-size:4.5pt">E-mail</td>
-                <td id="r-email" style="font-size:5pt;word-break:break-all"></td>
+                <td class="lbl" style="font-size:7pt">現住所</td>
+                <td id="r-address" style="font-size:7pt;height:10mm;vertical-align:top;padding:1.5mm">
+                <td class="lbl" style="font-size:6pt">E-mail</td>
+                <td id="r-email" style="font-size:5pt;word-break:break-all;vertical-align:top;padding-top:1.5mm"></td>
               </tr>
-              <!-- 空白行（住所と連絡先の区切り・PDFではこの行に注記あり） -->
-              <tr><td colspan="4" style="height:3mm;padding:0.5mm 1.5mm;font-size:4pt;color:#444;text-align:left">（現住所以外に連絡を希望する場合のみ記入）</td></tr>
               <!-- 連絡先ふりがな ＋ 電話 -->
               <tr>
-                <td class="lbl" style="font-size:5pt;border-bottom:1px dashed #333">ふりがな</td>
-                <td style="border-bottom:1px dashed #333;height:6mm"></td>
-                <td class="lbl" style="font-size:5pt;border-bottom:1px dashed #333">電話</td>
-                <td id="r-contact-phone" style="border-bottom:1px dashed #333"></td>
+                <td class="lbl" style="font-size:6pt;border-bottom:1px dashed #333">ふりがな</td>
+                <td style="border-bottom:1px dashed #333;height:5.5mm"></td>
+                <td class="lbl" style="font-size:7pt;border-bottom:1px dashed #333">電話</td>
+                <td id="r-contact-phone" style="font-size:7pt;border-bottom:1px dashed #333"></td>
               </tr>
-              <!-- 連絡先住所 ＋ E-mail -->
+              <!-- 連絡先 ＋ E-mail -->
               <tr>
-                <td class="lbl" style="font-size:4.5pt">連絡先<br><span style="font-size:4pt">（〒　　）</span></td>
-                <td id="r-contact" style="font-size:6pt"></td>
-                <td class="lbl" style="font-size:4.5pt">E-mail</td>
+                <td class="lbl" style="font-size:7pt">連絡先</td>
+                <td id="r-contact" style="font-size:6pt;height:10mm;vertical-align:top;padding:1.5mm"></td>
+                <td class="lbl" style="font-size:6pt">E-mail</td>
                 <td style="font-size:5pt"></td>
               </tr>
             </table>
@@ -842,16 +840,16 @@ function generatePreview() {
 
   if (d.birth_year) {
     const yStr = `${d.birth_year}年`;
-    const mStr = d.birth_month ? `${d.birth_month}月` : '';
-    const dStr = d.birth_day   ? `${d.birth_day}日`  : '';
+    const mStr = d.birth_month ? ` ${d.birth_month}月` : '';
+    const dStr = d.birth_day   ? ` ${d.birth_day}日`  : '';
     document.getElementById('r-birth').textContent = yStr + mStr + dStr;
     if (d.birth_year && d.birth_month && d.birth_day) {
       const b = new Date(d.birth_year, d.birth_month - 1, d.birth_day);
-      document.getElementById('r-age').textContent = calcAge(b);
-    } else { document.getElementById('r-age').textContent = ''; }
+      document.getElementById('r-age').textContent = ' ' + calcAge(b) + ' ';
+    } else { document.getElementById('r-age').textContent = '  '; }
   } else {
-    document.getElementById('r-birth').textContent = '';
-    document.getElementById('r-age').textContent = '';
+    document.getElementById('r-birth').textContent = '　　年　月　日';
+    document.getElementById('r-age').textContent = '  ';
   }
   document.getElementById('r-gender').textContent = d.gender || '';
 
@@ -859,27 +857,30 @@ function generatePreview() {
     const n = (z||'').replace(/\D/g,'');
     return n.length >= 7 ? `〒${n.slice(0,3)}-${n.slice(3,7)}` : (z ? `〒${z}` : '');
   }
-  // 住所ふりがな：郵便番号分のスペースを空けて漢字位置に合わせる
-  const zipStr = fmtZip(d.address_zip);
+  // 住所表示：1行目に〒郵便番号、2行目に住所
+  const zipNum = (d.address_zip||'').replace(/\D/g,'');
+  const zipDisplay = zipNum.length >= 7 ? zipNum.slice(0,3) + '-' + zipNum.slice(3,7) : (d.address_zip || '');
+  const addrEl = document.getElementById('r-address');
+  addrEl.innerHTML =
+    '<div style="font-size:7pt">〒' + eh(zipDisplay) + '</div>' +
+    '<div style="font-size:7pt">' + eh(d.address || '') + '</div>';
+  // ふりがな：住所テキスト（2行目）の開始位置に合わせる
   const furiganaEl = document.getElementById('r-address-furigana');
-  if (zipStr && d.address_furigana) {
-    furiganaEl.innerHTML = '<span style="visibility:hidden;font-size:6.5pt">' + eh(zipStr) + '　</span>' + eh(d.address_furigana);
-  } else {
-    furiganaEl.textContent = d.address_furigana || '';
-  }
-  // 現住所：〒xxx-xxxx　住所
-  const addrFull = zipStr ? `${zipStr}　${d.address||''}` : (d.address || '');
-  document.getElementById('r-address').textContent = addrFull;
+  furiganaEl.textContent = d.address_furigana || '';
   document.getElementById('r-phone').textContent = d.phone || '';
   document.getElementById('r-email').textContent = d.email || '';
 
   // 連絡先（住所・電話を独立表示）
-  const hasContactAddr = d.contact || d.contact_zip;
-  const cAddr = hasContactAddr ? d.contact : '';
-  const cZip = hasContactAddr ? fmtZip(d.contact_zip) : '';
-  const contactAddrText = cZip ? `${cZip}　${cAddr}` : cAddr;
   const contactEl = document.getElementById('r-contact');
-  contactEl.textContent = contactAddrText || '';
+  if (d.contact || d.contact_zip) {
+    const cZipNum = (d.contact_zip||'').replace(/\D/g,'');
+    const cZipDisplay = cZipNum.length >= 7 ? cZipNum.slice(0,3) + '-' + cZipNum.slice(3,7) : (d.contact_zip || '');
+    contactEl.innerHTML =
+      '<div style="font-size:6pt">〒' + eh(cZipDisplay) + '</div>' +
+      '<div style="font-size:6pt">' + eh(d.contact || '') + '</div>';
+  } else {
+    contactEl.innerHTML = '<span style="font-size:5pt;color:#333">（現住所以外に連絡を希望する場合のみ記入）</span>';
+  }
   document.getElementById('r-contact-phone').textContent = d.contact_phone || '';
 
   // Build history rows
