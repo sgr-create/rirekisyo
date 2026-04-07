@@ -160,6 +160,17 @@ body{font-family:'Hiragino Sans','Yu Gothic',sans-serif;background:#f0f4f8;color
   <div class="card">
     <div class="card-title">氏名・生年月日</div>
     <div class="field">
+      <label>作成日</label>
+      <div style="display:flex;gap:6px;align-items:center">
+        <select id="doc-year" style="flex:2;padding:10px 12px;border:1.5px solid #e2e8f0;border-radius:8px;font-size:15px;background:#f8fafc;outline:none;-webkit-appearance:none"></select>
+        <span>年</span>
+        <select id="doc-month" style="flex:1;padding:10px 8px;border:1.5px solid #e2e8f0;border-radius:8px;font-size:15px;background:#f8fafc;outline:none;-webkit-appearance:none"></select>
+        <span>月</span>
+        <select id="doc-day" style="flex:1;padding:10px 8px;border:1.5px solid #e2e8f0;border-radius:8px;font-size:15px;background:#f8fafc;outline:none;-webkit-appearance:none"></select>
+        <span>日</span>
+      </div>
+    </div>
+    <div class="field">
       <label>ふりがな（氏名）</label>
       <input type="text" id="furigana" placeholder="やまだ たろう">
     </div>
@@ -577,6 +588,43 @@ let wId = 0, eId = 0, lId = 0;
 
 // ===================== INIT =====================
 document.addEventListener('DOMContentLoaded', () => {
+  // 作成日プルダウン生成（今日の日付をデフォルト）
+  const today = new Date();
+  const docYearSel = document.getElementById('doc-year');
+  const docMonthSel = document.getElementById('doc-month');
+  const docDaySel = document.getElementById('doc-day');
+  for (let y = today.getFullYear() + 1; y >= 2020; y--) {
+    const o = document.createElement('option');
+    o.value = y; o.textContent = y;
+    if (y === today.getFullYear()) o.selected = true;
+    docYearSel.appendChild(o);
+  }
+  for (let m = 1; m <= 12; m++) {
+    const o = document.createElement('option');
+    o.value = m; o.textContent = m;
+    if (m === today.getMonth() + 1) o.selected = true;
+    docMonthSel.appendChild(o);
+  }
+  for (let d = 1; d <= 31; d++) {
+    const o = document.createElement('option');
+    o.value = d; o.textContent = d;
+    if (d === today.getDate()) o.selected = true;
+    docDaySel.appendChild(o);
+  }
+  [docYearSel, docMonthSel, docDaySel].forEach(el => el.addEventListener('change', generatePreview));
+
+  // 電話番号ハイフン自動挿入
+  function formatPhone(el) {
+    el.addEventListener('input', () => {
+      let v = el.value.replace(/[^\d]/g, '');
+      if (v.length <= 3) el.value = v;
+      else if (v.length <= 7) el.value = v.slice(0,3) + '-' + v.slice(3);
+      else el.value = v.slice(0,3) + '-' + v.slice(3,7) + '-' + v.slice(7,11);
+    });
+  }
+  formatPhone(document.getElementById('phone'));
+  formatPhone(document.getElementById('contact_phone'));
+
   // Tab switching
   document.querySelectorAll('.tab').forEach(tab => {
     tab.addEventListener('click', () => {
@@ -835,9 +883,11 @@ function generatePreview() {
   const d = getFormData();
   const sd = window._sd || {};
 
-  const today = new Date();
+  const dy = document.getElementById('doc-year').value || new Date().getFullYear();
+  const dm = document.getElementById('doc-month').value || (new Date().getMonth()+1);
+  const dd = document.getElementById('doc-day').value || new Date().getDate();
   document.getElementById('r-date').textContent =
-    `${today.getFullYear()}年　${today.getMonth()+1}月　${today.getDate()}日現在`;
+    `${dy}年　${dm}月　${dd}日現在`;
 
   document.getElementById('r-furigana').textContent = d.furigana || '';
   document.getElementById('r-name').textContent = d.name || '';
@@ -973,49 +1023,59 @@ function exportPDF() {
   const btn = document.querySelector('.btn-print');
   btn.textContent = 'PDF作成中...';
   btn.disabled = true;
+
   const resume = document.getElementById('resumeEl');
-  // 一時的にscaleをリセットしてフル解像度でキャプチャ
   const scaler = document.getElementById('previewScaler');
-  const origTransform = scaler.style.transform;
-  scaler.style.transform = 'none';
   const wrapper = document.getElementById('previewWrapper');
+
+  // スケールをリセットしてフル解像度でキャプチャ
+  const origTransform = scaler.style.transform;
   const origW = wrapper.style.width;
   const origH = wrapper.style.height;
-  wrapper.style.width = 'auto';
-  wrapper.style.height = 'auto';
+  const origOverflow = wrapper.style.overflow;
+  scaler.style.transform = 'scale(1)';
+  wrapper.style.width = resume.offsetWidth + 'px';
+  wrapper.style.height = resume.offsetHeight + 'px';
   wrapper.style.overflow = 'visible';
 
-  html2canvas(resume, {
-    scale: 2,
-    useCORS: true,
-    backgroundColor: '#ffffff',
-    width: resume.scrollWidth,
-    height: resume.scrollHeight
-  }).then(canvas => {
-    const imgData = canvas.toDataURL('image/jpeg', 0.95);
-    const { jsPDF } = window.jspdf;
-    const pdf = new jsPDF({ orientation: 'landscape', unit: 'mm', format: 'a4' });
-    pdf.addImage(imgData, 'JPEG', 0, 0, 297, 210);
-    const today = new Date();
-    const dateStr = `${today.getFullYear()}${String(today.getMonth()+1).padStart(2,'0')}${String(today.getDate()).padStart(2,'0')}`;
-    pdf.save(`履歴書_${dateStr}.pdf`);
-    // スケールを復元
+  const restore = () => {
     scaler.style.transform = origTransform;
     wrapper.style.width = origW;
     wrapper.style.height = origH;
-    wrapper.style.overflow = 'hidden';
+    wrapper.style.overflow = origOverflow;
     btn.textContent = 'PDF保存';
     btn.disabled = false;
-  }).catch(err => {
-    console.error(err);
-    alert('PDF作成に失敗しました');
-    scaler.style.transform = origTransform;
-    wrapper.style.width = origW;
-    wrapper.style.height = origH;
-    wrapper.style.overflow = 'hidden';
-    btn.textContent = 'PDF保存';
-    btn.disabled = false;
-  });
+  };
+
+  // 描画反映を待ってからキャプチャ
+  setTimeout(() => {
+    html2canvas(resume, {
+      scale: 3,
+      useCORS: true,
+      allowTaint: true,
+      backgroundColor: '#ffffff',
+      width: resume.offsetWidth,
+      height: resume.offsetHeight,
+      scrollX: 0,
+      scrollY: 0,
+      windowWidth: resume.offsetWidth,
+      windowHeight: resume.offsetHeight
+    }).then(canvas => {
+      const imgData = canvas.toDataURL('image/jpeg', 0.98);
+      const { jsPDF } = window.jspdf;
+      // A4横サイズ・余白なし
+      const pdf = new jsPDF({ orientation: 'landscape', unit: 'mm', format: 'a4' });
+      pdf.addImage(imgData, 'JPEG', 0, 0, 297, 210);
+      const today = new Date();
+      const dateStr = `${today.getFullYear()}${String(today.getMonth()+1).padStart(2,'0')}${String(today.getDate()).padStart(2,'0')}`;
+      pdf.save(`履歴書_${dateStr}.pdf`);
+      restore();
+    }).catch(err => {
+      console.error('PDF error:', err);
+      alert('PDF作成に失敗しました。プレビューを開いた状態でもう一度お試しください。');
+      restore();
+    });
+  }, 300);
 }
 
 // ===================== FILE EXPORT / IMPORT =====================
